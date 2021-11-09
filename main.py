@@ -114,9 +114,6 @@ def train(**kwargs):
             loss.backward()
             optimizer.step()
 
-            recall, ndcg = predict(model, opt, train_set, test_set)
-            print(recall, ndcg)
-
             if opt.fine_step:
                 if idx % opt.print_step == 0 and idx > 0:
                     print("\t{}, {} step finised;".format(now(), idx))
@@ -129,8 +126,6 @@ def train(**kwargs):
                     #     best_res = min_loss
                     recall, ndcg = predict(model, opt, train_set, test_set)
                     print(recall, ndcg)
-
-            print(f"{now()}  Batch {idx}...")
 
         scheduler.step()
         mse = total_loss * 1.0 / len(train_data)
