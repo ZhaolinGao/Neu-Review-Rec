@@ -16,7 +16,7 @@ P_REVIEW = 0.85
 MAX_DF = 0.7
 MAX_VOCAB = 50000
 DOC_LEN = 500
-PRE_W2V_BIN_PATH = ""  # the pre-trained word2vec files
+PRE_W2V_BIN_PATH = "./glove_word2vec.txt"  # the pre-trained word2vec files
 
 
 def now():
@@ -462,7 +462,7 @@ if __name__ == '__main__':
     w2v = []
     out = 0
     if PRE_W2V_BIN_PATH:
-        pre_word2v = gensim.models.KeyedVectors.load_word2vec_format(PRE_W2V_BIN_PATH, binary=True)
+        pre_word2v = gensim.models.KeyedVectors.load_word2vec_format(PRE_W2V_BIN_PATH)
     else:
         pre_word2v = {}
     print(f"{now()} 开始提取embedding")

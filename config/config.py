@@ -10,7 +10,7 @@ class DefaultConfig:
 
     # -------------base config-----------------------#
     use_gpu = True
-    gpu_id = 1
+    gpu_id = 0
     multi_gpu = False
     gpu_ids = []
 
@@ -111,5 +111,5 @@ class Digital_Music_data_Config(DefaultConfig):
     user_num = 5541 + 2
     item_num = 3568 + 2
 
-    batch_size = 128
+    batch_size = 256
     print_step = 100
