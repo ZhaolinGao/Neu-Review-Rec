@@ -57,7 +57,7 @@ def train(**kwargs):
     train_data = ReviewData(opt.data_root, mode="Train")
     train_data_loader = DataLoader(train_data, batch_size=opt.batch_size, shuffle=True, collate_fn=collate_fn)
     val_data = ReviewData(opt.data_root, mode="Val")
-    # val_data_loader = DataLoader(val_data, batch_size=opt.batch_size, shuffle=False, collate_fn=collate_fn)
+    val_data_loader = DataLoader(val_data, batch_size=opt.batch_size, shuffle=False, collate_fn=collate_fn)
     print(f'train data: {len(train_data)}; test data: {len(val_data)}')
 
     # train test set
@@ -117,22 +117,24 @@ def train(**kwargs):
             if opt.fine_step:
                 if idx % opt.print_step == 0 and idx > 0:
                     print("\t{}, {} step finised;".format(now(), idx))
-                    # val_loss, val_mse, val_mae = predict(model, val_data_loader, opt)
+                    recall, ndcg = predict_r_n(model, opt, train_set, test_set)
+                    print(recall, ndcg)
+                    val_loss, val_mse, val_mae = predict(model, val_data_loader, opt)
+                    print(val_loss, val_mse, val_mae)
                     # if val_loss < min_loss:
                     #     model.save(name=opt.dataset, opt=opt.print_opt)
                     #     min_loss = val_loss
                     #     print("\tmodel save")
                     # if val_loss > min_loss:
                     #     best_res = min_loss
-                    recall, ndcg = predict(model, opt, train_set, test_set)
-                    print(recall, ndcg)
 
         scheduler.step()
         mse = total_loss * 1.0 / len(train_data)
         print(f"\ttrain data: loss:{total_loss:.4f}, mse: {mse:.4f};")
-        recall, ndcg = predict(model, opt, train_set, test_set)
+        recall, ndcg = predict_r_n(model, opt, train_set, test_set)
         print(recall, ndcg)
-        # val_loss, val_mse, val_mae = predict(model, val_data_loader, opt)
+        val_loss, val_mse, val_mae = predict(model, val_data_loader, opt)
+        print(val_loss, val_mse, val_mae)
         # if val_loss < min_loss:
         #     model.save(name=opt.dataset, opt=opt.print_opt)
         #     min_loss = val_loss
@@ -179,34 +181,34 @@ def test(**kwargs):
     predict_loss, test_mse, test_mae = predict(model, test_data_loader, opt)
 
 
-# def predict(model, data_loader, opt):
-#     total_loss = 0.0
-#     total_maeloss = 0.0
-#     model.eval()
-#     with torch.no_grad():
-#         for idx, (test_data, scores) in enumerate(data_loader):
-#             if opt.use_gpu:
-#                 scores = torch.FloatTensor(scores).cuda()
-#             else:
-#                 scores = torch.FloatTensor(scores)
-#             test_data = unpack_input(opt, test_data)
+def predict(model, data_loader, opt):
+    total_loss = 0.0
+    total_maeloss = 0.0
+    model.eval()
+    with torch.no_grad():
+        for idx, (test_data, scores) in enumerate(data_loader):
+            if opt.use_gpu:
+                scores = torch.FloatTensor(scores).cuda()
+            else:
+                scores = torch.FloatTensor(scores)
+            test_data = unpack_input(opt, test_data)
 
-#             output = model(test_data)
-#             mse_loss = torch.sum((output-scores)**2)
-#             total_loss += mse_loss.item()
+            output = model(test_data)
+            mse_loss = torch.sum((output-scores)**2)
+            total_loss += mse_loss.item()
 
-#             mae_loss = torch.sum(abs(output-scores))
-#             total_maeloss += mae_loss.item()
+            mae_loss = torch.sum(abs(output-scores))
+            total_maeloss += mae_loss.item()
 
-#     data_len = len(data_loader.dataset)
-#     mse = total_loss * 1.0 / data_len
-#     mae = total_maeloss * 1.0 / data_len
-#     print(f"\tevaluation reslut: mse: {mse:.4f}; rmse: {math.sqrt(mse):.4f}; mae: {mae:.4f};")
-#     model.train()
-#     return total_loss, mse, mae
+    data_len = len(data_loader.dataset)
+    mse = total_loss * 1.0 / data_len
+    mae = total_maeloss * 1.0 / data_len
+    print(f"\tevaluation reslut: mse: {mse:.4f}; rmse: {math.sqrt(mse):.4f}; mae: {mae:.4f};")
+    model.train()
+    return total_loss, mse, mae
 
 
-def predict(model, opt, train_set, test_set):
+def predict_r_n(model, opt, train_set, test_set):
     batch_size = opt.batch_size
     current_user = 0
     num_user = opt.user_num - 2
@@ -306,6 +308,8 @@ def predict(model, opt, train_set, test_set):
 
     all_ndcg = ndcg_func([*test_set.values()], pred_list[list(test_set.keys())])
     ndcg = [all_ndcg[x-1] for x in [5, 10, 20]]
+
+    model.train()
 
     return recall, ndcg
 
