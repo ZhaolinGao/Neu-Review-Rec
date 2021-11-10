@@ -117,8 +117,8 @@ def train(**kwargs):
             if opt.fine_step:
                 if idx % opt.print_step == 0 and idx > 0:
                     print("\t{}, {} step finised;".format(now(), idx))
-                    recall, ndcg = predict_r_n(model, opt, train_set, test_set)
-                    print(recall, ndcg)
+                    # recall, ndcg = predict_r_n(model, opt, train_set, test_set)
+                    # print(recall, ndcg)
                     val_loss, val_mse, val_mae = predict(model, val_data_loader, opt)
                     print(val_loss, val_mse, val_mae)
                     # if val_loss < min_loss:
@@ -131,8 +131,8 @@ def train(**kwargs):
         scheduler.step()
         mse = total_loss * 1.0 / len(train_data)
         print(f"\ttrain data: loss:{total_loss:.4f}, mse: {mse:.4f};")
-        recall, ndcg = predict_r_n(model, opt, train_set, test_set)
-        print(recall, ndcg)
+        # recall, ndcg = predict_r_n(model, opt, train_set, test_set)
+        # print(recall, ndcg)
         val_loss, val_mse, val_mae = predict(model, val_data_loader, opt)
         print(val_loss, val_mse, val_mae)
         # if val_loss < min_loss:
